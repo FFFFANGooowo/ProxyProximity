@@ -131,9 +131,7 @@
                 <input type="text" id="apiBaseUrl" placeholder="例如: api.openai.com" value="api.openai.com">
             </div>
             <div style="margin-top: 15px;">
-                <label for="proxyUrl">代理后的URL:</label>
-                <input type="text" id="proxyUrl" readonly value="">
-                <button onclick="copyProxyUrl()" style="margin-top: 5px;">复制代理URL</button>
+                <button onclick="copyProxyUrl()">复制代理URL</button>
             </div>
         </div>
         
@@ -153,6 +151,10 @@
                 <button onclick="fetchModels()">获取模型列表</button>
             </div>
             <div id="modelError" class="error" style="display: none;"></div>
+            <div id="modelSuccess" style="display: none; position: relative; background-color: #e8f5e9; color: #388e3c; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; text-align: center; overflow: hidden;">
+                <h3 style="margin: 0; font-size: 1.2em;">🎉 模型列表获取成功！太棒了！ 🎉</h3>
+                <div class="confetti" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+            </div>
         </div>
         
         <div class="section">
@@ -210,15 +212,18 @@
             // 确保apiBaseUrl不包含协议前缀
             const cleanBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '');
             const proxyUrl = `${window.location.protocol}//${window.location.host}/${cleanBaseUrl}`;
-            document.getElementById('proxyUrl').value = proxyUrl;
             return `${proxyUrl}/${endpoint}`;
         }
         
         function copyProxyUrl() {
-            const proxyUrlInput = document.getElementById('proxyUrl');
-            proxyUrlInput.select();
-            document.execCommand('copy');
-            alert('代理URL已复制到剪贴板！');
+            const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+            const cleanBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '');
+            const proxyUrl = `${window.location.protocol}//${window.location.host}/${cleanBaseUrl}`;
+            navigator.clipboard.writeText(proxyUrl).then(() => {
+                alert('代理URL已复制到剪贴板！');
+            }, () => {
+                alert('复制失败，请手动复制URL。');
+            });
         }
         
         function getApiKey() {
@@ -248,6 +253,7 @@
                 if (data.data && Array.isArray(data.data)) {
                     updateModelList(data.data);
                     document.getElementById('modelError').textContent = '';
+                    showSuccessAnimation();
                 } else {
                     throw new Error(`意外的响应格式: 没有找到模型数据<br>完整响应: ${JSON.stringify(data, null, 2)}`);
                 }
@@ -255,6 +261,39 @@
                 showError('modelError', `获取模型列表失败:<br>${error.message}`);
             }
         }
+        
+        function showSuccessAnimation() {
+            const successElement = document.getElementById('modelSuccess');
+            successElement.style.display = 'block';
+            // 彩带动画
+            const confettiContainer = successElement.querySelector('.confetti');
+            confettiContainer.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = ['#ff4081', '#00e5ff', '#00c853', '#ffea00'][Math.floor(Math.random() * 4)];
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.top = `${Math.random() * -50}px`;
+                confetti.style.animation = `fall ${Math.random() * 3 + 2}s ease-out forwards`;
+                confettiContainer.appendChild(confetti);
+            }
+            // 5秒后隐藏提示
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // 定义彩带飘落动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                0% { transform: translateY(0) rotate(0deg); }
+                100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
         
         function sendMessage() {
             clearError('chatError');
