@@ -127,8 +127,13 @@
                 <input type="password" id="apiKey" placeholder="请输入你的API密钥">
             </div>
             <div style="margin-top: 15px;">
-                <label for="apiBaseUrl">API基础地址:</label>
+                <label for="apiBaseUrl">需要代理的API基础地址:</label>
                 <input type="text" id="apiBaseUrl" placeholder="例如: api.openai.com" value="api.openai.com">
+            </div>
+            <div style="margin-top: 15px;">
+                <label for="proxyUrl">代理后的URL:</label>
+                <input type="text" id="proxyUrl" readonly value="">
+                <button onclick="copyProxyUrl()" style="margin-top: 5px;">复制代理URL</button>
             </div>
         </div>
         
@@ -202,7 +207,16 @@
         
         function getApiUrl(endpoint) {
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
-            return `${window.location.protocol}//${window.location.host}/${apiBaseUrl}/${endpoint}`;
+            const proxyUrl = `${window.location.protocol}//${window.location.host}/${apiBaseUrl}`;
+            document.getElementById('proxyUrl').value = proxyUrl;
+            return `${proxyUrl}/${endpoint}`;
+        }
+        
+        function copyProxyUrl() {
+            const proxyUrlInput = document.getElementById('proxyUrl');
+            proxyUrlInput.select();
+            document.execCommand('copy');
+            alert('代理URL已复制到剪贴板！');
         }
         
         function getApiKey() {
