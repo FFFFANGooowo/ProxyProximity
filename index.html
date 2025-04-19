@@ -207,7 +207,9 @@
         
         function getApiUrl(endpoint) {
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
-            const proxyUrl = `${window.location.protocol}//${window.location.host}/${apiBaseUrl}`;
+            // 确保apiBaseUrl不包含协议前缀
+            const cleanBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '');
+            const proxyUrl = `${window.location.protocol}//${window.location.host}/${cleanBaseUrl}`;
             document.getElementById('proxyUrl').value = proxyUrl;
             return `${proxyUrl}/${endpoint}`;
         }
