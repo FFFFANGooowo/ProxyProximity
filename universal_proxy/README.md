@@ -1,65 +1,65 @@
-# Universal API Proxy
+# 通用API代理
 
-This project provides a universal API proxy for Deno Deploy that can route requests to various API endpoints based on the URL structure. It supports different API authentication styles based on the target domain.
+本项目为Deno Deploy提供了一个通用API代理，可以根据URL结构将请求路由到各种API端点。它根据目标域名支持不同的API认证样式。
 
-## Features
+## 功能
 
-- **Dynamic Routing**: Routes requests to the target API based on the URL format `https://[your-deno-domain]/[target-api-domain]/...`
-- **API Style Detection**: Automatically detects the API style (e.g., Google or OpenAI/X.AI) and sets the appropriate authentication headers.
-- **CORS Support**: Handles CORS preflight requests to allow cross-origin requests.
+- **动态路由**：根据URL格式 `https://[你的Deno域名]/[目标API域名]/...` 将请求路由到目标API。
+- **API样式检测**：自动检测API样式（例如Google或OpenAI/X.AI），并设置相应的认证头。
+- **CORS支持**：处理CORS预检请求，允许跨域请求。
 
-## Deployment on Deno Deploy
+## 在Deno Deploy上部署
 
-1. **Create a Deno Deploy Project**:
-   - Sign up or log in to [Deno Deploy](https://deno.com/deploy).
-   - Create a new project.
+1. **创建Deno Deploy项目**：
+   - 注册或登录 [Deno Deploy](https://deno.com/deploy)。
+   - 创建一个新项目。
 
-2. **Deploy the Proxy**:
-   - Use the following command to deploy directly from this repository if it's hosted on GitHub, or upload the `proxy.ts` file manually:
+2. **部署代理**：
+   - 如果本仓库托管在GitHub上，可以使用以下命令直接部署，或者手动上传 `proxy.ts` 文件：
      ```
-     deno deploy --project=your-project-name ./proxy.ts
+     deno deploy --project=你的项目名称 ./proxy.ts
      ```
-   - Alternatively, link your GitHub repository to Deno Deploy for automatic deployments on push.
+   - 或者，将你的GitHub仓库链接到Deno Deploy，实现推送时自动部署。
 
-3. **Set Environment Variables** (Optional):
-   - If you want to set a default API key, add `UNIVERSAL_API_KEY` in the Deno Deploy project settings under Environment Variables.
+3. **设置环境变量**（可选）：
+   - 如果你想设置默认API密钥，可以在Deno Deploy项目设置中的环境变量下添加 `UNIVERSAL_API_KEY`。
 
-4. **Access Your Proxy**:
-   - Once deployed, your proxy will be accessible at `https://your-project-name.deno.dev`.
-   - Use it by prefixing your API URLs with your Deno domain, e.g., `https://your-project-name.deno.dev/api.openai.com/v1/chat/completions` to proxy requests to OpenAI.
+4. **访问你的代理**：
+   - 部署后，你的代理将在 `https://你的项目名称.deno.dev` 上可用。
+   - 使用时，将你的API URL前缀加上你的Deno域名，例如 `https://你的项目名称.deno.dev/api.openai.com/v1/chat/completions` 以代理到OpenAI的请求。
 
-## Local Development
+## 本地开发
 
-1. **Install Deno**:
-   - If not already installed, download and install Deno from [deno.land](https://deno.land/).
+1. **安装Deno**：
+   - 如果尚未安装，请从 [deno.land](https://deno.land/) 下载并安装Deno。
 
-2. **Run the Proxy Locally**:
-   - Navigate to the project directory and run:
+2. **本地运行代理**：
+   - 导航到项目目录并运行：
      ```
      deno run --allow-net --allow-env proxy.ts
      ```
-   - The server will start on `http://localhost:8000`.
+   - 服务器将在 `http://localhost:8000` 上启动。
 
-3. **Test the Proxy**:
-   - Send requests to `http://localhost:8000/[target-api-domain]/...` to test the proxy functionality.
+3. **测试代理**：
+   - 向 `http://localhost:8000/[目标API域名]/...` 发送请求以测试代理功能。
 
-## Usage Examples
+## 使用示例
 
-- **Proxying OpenAI API**:
-  - Original URL: `https://api.openai.com/v1/chat/completions`
-  - Proxied URL: `https://your-project-name.deno.dev/api.openai.com/v1/chat/completions`
-  - Authentication: Uses `Authorization: Bearer [your-api-key]`
+- **代理OpenAI API**：
+  - 原始URL：`https://api.openai.com/v1/chat/completions`
+  - 代理URL：`https://你的项目名称.deno.dev/api.openai.com/v1/chat/completions`
+  - 认证：使用 `Authorization: Bearer [你的API密钥]`
 
-- **Proxying Google AI API**:
-  - Original URL: `https://generativelanguage.googleapis.com/v1/models`
-  - Proxied URL: `https://your-project-name.deno.dev/generativelanguage.googleapis.com/v1/models`
-  - Authentication: Uses `X-Goog-Api-Key: [your-api-key]`
+- **代理Google AI API**：
+  - 原始URL：`https://generativelanguage.googleapis.com/v1/models`
+  - 代理URL：`https://你的项目名称.deno.dev/generativelanguage.googleapis.com/v1/models`
+  - 认证：使用 `X-Goog-Api-Key: [你的API密钥]`
 
-## Troubleshooting
+## 故障排除
 
-- **TypeScript Errors**: If you see errors in your IDE about missing Deno types, they can be ignored as Deno doesn't require TypeScript configuration for runtime. These errors won't affect deployment on Deno Deploy.
-- **API Key Issues**: Ensure you're passing the API key correctly via headers (`Authorization`, `x-api-key`, `x-goog-api-key`) or as a query parameter (`key`).
+- **TypeScript错误**：如果你在IDE中看到关于缺少Deno类型的错误，可以忽略它们，因为Deno运行时不需要TypeScript配置。这些错误不会影响在Deno Deploy上的部署。
+- **API密钥问题**：确保你通过头信息（`Authorization`、`x-api-key`、`x-goog-api-key`）或查询参数（`key`）正确传递API密钥。
 
-## License
+## 许可证
 
 MIT
