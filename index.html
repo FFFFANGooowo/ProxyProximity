@@ -298,6 +298,11 @@
                     updateModelList(data.data);
                     document.getElementById('modelError').textContent = '';
                     showSuccessAnimation();
+                } else if (data.models && Array.isArray(data.models)) {
+                    // 支持Google API的响应格式
+                    updateModelList(data.models.map(model => ({ id: model.name })));
+                    document.getElementById('modelError').textContent = '';
+                    showSuccessAnimation();
                 } else {
                     throw new Error(`意外的响应格式: 没有找到模型数据<br>完整响应: ${JSON.stringify(data, null, 2)}`);
                 }
