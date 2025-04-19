@@ -6,14 +6,6 @@
 
 ---
 
-## 什么是通用API代理？🤔
-
-通用API代理是一个中间服务，它可以将你的请求转发到不同的API服务商（如OpenAI、Google AI等）。通过这个代理，你只需修改API的URL前缀，就能访问各种API服务，而无需更改代码或担心跨域问题。
-
-**简单来说**：它就像一个“翻译官”，帮你把请求送到正确的API服务商，并把结果返回给你。
-
----
-
 ## 功能亮点 ✨
 
 - **动态路由**：根据URL自动将请求转发到目标API，例如 `https://你的Deno域名/api.openai.com/...` 会转发到 `https://api.openai.com/...`。
@@ -83,27 +75,33 @@ Deno Deploy是一个简单易用的平台，可以免费托管你的代码。以
 2. **运行代理**：
    - 打开命令行，导航到项目目录，运行以下命令：
      ```
-     deno run --allow-net --allow-env proxy.ts
+     deno run --allow-net --allow-env --allow-read proxy.ts
      ```
    - 代理服务将在 `http://localhost:8000` 上启动。
-3. **测试请求**：
-   - 向 `http://localhost:8000/api.openai.com/v1/chat/completions` 发送请求，确认代理功能正常。
+3. **使用测试UI**：
+   - 打开浏览器，访问 `http://localhost:8000`，你将看到一个测试用的Web UI页面。
+   - 在页面上输入你的API密钥和目标API基础地址（例如 `api.openai.com`），选择或输入模型ID，然后开始聊天测试。
+   - 该页面支持流式传输（SSE）和上下文管理，并会显示详细的错误信息，帮助你诊断问题。
+4. **直接发送请求**：
+   - 或者，你可以直接向 `http://localhost:8000/api.openai.com/v1/chat/completions` 发送API请求，确认代理功能正常。
 
 ---
 
-## 使用示例 📋
+## 使用示例与测试UI 📋
 
-以下是一些常见API的代理方式，供你参考：
+除了直接在代码中使用代理URL外，你还可以使用我们提供的测试UI页面来快速验证代理功能。以下是一些常见API的代理方式，供你参考：
 
 - **代理OpenAI API**：
   - 原始URL：`https://api.openai.com/v1/chat/completions`
   - 代理URL：`https://你的项目名称.deno.dev/api.openai.com/v1/chat/completions`
   - 认证方式：使用 `Authorization: Bearer 你的API密钥`
+  - 测试方式：在测试UI中输入API密钥和 `api.openai.com`，选择模型后发送消息。
 
 - **代理Google AI API**：
   - 原始URL：`https://generativelanguage.googleapis.com/v1/models`
   - 代理URL：`https://你的项目名称.deno.dev/generativelanguage.googleapis.com/v1/models`
   - 认证方式：使用 `X-Goog-Api-Key: 你的API密钥`
+  - 测试方式：在测试UI中输入API密钥和 `generativelanguage.googleapis.com`，获取模型列表后选择模型。
 
 **如何传递API密钥**：
 - 你可以在请求头中传递密钥（如 `Authorization` 或 `x-api-key`），或者在URL中添加查询参数 `key=你的API密钥`。

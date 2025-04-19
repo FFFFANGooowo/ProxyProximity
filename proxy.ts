@@ -26,15 +26,28 @@ function getApiKey(req: Request): string | null {
 async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
 
-  // Handle root path
-  if (url.pathname === '/') {
-    return new Response('Universal API Proxy is Running', {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/plain',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+  // Handle root path and static files
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    try {
+      // Read the index.html file
+      const fileContent = await Deno.readTextFile('./index.html');
+      return new Response(fileContent, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=UTF-8',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    } catch (error) {
+      console.error("Error serving index.html:", error);
+      return new Response('Error loading test UI', {
+        status: 500,
+        headers: {
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
   }
 
   // Handle OPTIONS for CORS preflight
