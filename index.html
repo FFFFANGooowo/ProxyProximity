@@ -196,6 +196,12 @@
                     <div class="confetti" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
                 </div>
             </div>
+            <div class="section">
+                <h2>系统提示词（可选）</h2>
+                <div>
+                    <textarea id="systemPrompt" placeholder="输入系统级提示词，例如：你是一个智能助手，使用中文回答问题" style="width: 100%; box-sizing: border-box; min-height: 80px;"></textarea>
+                </div>
+            </div>
         </div>
         
         <div class="right-panel">
@@ -375,10 +381,15 @@
             
             chatHistory.push({ role: 'user', content: message });
             
-            // 根据API基础地址判断是否为Google服务，调整请求路径
+            // 根据API基础地址判断是否为Google服务，调整请求路径和载荷
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
             const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
             let endpoint = 'v1/chat/completions';
+            let payload = {
+                model: model,
+                messages: chatHistory,
+                stream: true
+            };
             if (isGoogleStyle) {
                 const model = document.getElementById('modelSelect').value || document.getElementById('modelInput').value;
                 if (model) {
@@ -388,13 +399,35 @@
                 } else {
                     endpoint = 'v1beta/generateMessage';
                 }
+                // Google API 特定的载荷格式
+                const systemPrompt = document.getElementById('systemPrompt').value.trim();
+                const contents = chatHistory.map(msg => ({
+                    role: msg.role,
+                    parts: [{ text: msg.content }]
+                }));
+                payload = {
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "OFF" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "OFF" },
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "OFF" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "OFF" },
+                        { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "OFF" }
+                    ],
+                    generationConfig: {
+                        temperature: 0.88,
+                        topP: 1
+                    },
+                    tools: [],
+                    contents: contents
+                };
+                if (systemPrompt) {
+                    payload.systemInstruction = {
+                        role: "system",
+                        parts: [{ text: systemPrompt }]
+                    };
+                }
             }
             const url = getApiUrl(endpoint);
-            const payload = {
-                model: model,
-                messages: chatHistory,
-                stream: true
-            };
             
             fetchSSE(url, payload, apiKey);
         }
