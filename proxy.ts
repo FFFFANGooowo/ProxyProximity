@@ -89,7 +89,9 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const targetDomain = pathSegments[0];
+    let targetDomain = pathSegments[0];
+    // 确保目标域名不包含协议前缀
+    targetDomain = targetDomain.replace(/^https?:\/\//, '');
     const remainingPath = pathSegments.slice(1).join('/');
     const targetBaseUrl = `https://${targetDomain}`;
     const targetUrl = new URL(`${targetBaseUrl}/${remainingPath}${url.search}`);
