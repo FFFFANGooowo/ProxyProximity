@@ -370,7 +370,9 @@
                 showError('chatError', '错误：请提供API密钥。');
                 return;
             }
-            const model = document.getElementById('modelSelect').value || document.getElementById('modelInput').value;
+            const modelSelect = document.getElementById('modelSelect').value;
+            const modelInput = document.getElementById('modelInput').value.trim();
+            const model = modelInput || modelSelect;
             if (!model) {
                 showError('chatError', '错误：请选择或输入模型ID。');
                 return;
@@ -391,7 +393,9 @@
                 stream: true
             };
             if (isGoogleStyle) {
-                const model = document.getElementById('modelSelect').value || document.getElementById('modelInput').value;
+                const modelSelect = document.getElementById('modelSelect').value;
+                const modelInput = document.getElementById('modelInput').value.trim();
+                const model = modelInput || modelSelect;
                 if (model) {
                     // 确保不重复添加 'models/' 前缀
                     const modelPath = model.startsWith('models/') ? model : `models/${model}`;
