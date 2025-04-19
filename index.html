@@ -164,13 +164,14 @@
                     <label for="apiKey">API密钥:</label>
                     <input type="password" id="apiKey" placeholder="请输入你的API密钥">
                 </div>
-                <div style="margin-top: 15px;">
-                    <label for="apiBaseUrl">需要代理的API基础地址:</label>
-                    <input type="text" id="apiBaseUrl" placeholder="例如: api.openai.com" value="api.openai.com">
-                </div>
-                <div style="margin-top: 15px;">
-                    <button onclick="copyProxyUrl()">复制代理URL</button>
-                </div>
+            <div style="margin-top: 15px;">
+                <label for="apiBaseUrl">需要代理的API完整地址:</label>
+                <input type="text" id="apiBaseUrl" placeholder="例如: api.openai.com 或 generativelanguage.googleapis.com/v1beta" value="api.openai.com">
+            </div>
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                <button onclick="copyProxyUrl()">复制代理URL</button>
+                <span id="proxyUrlDisplay" style="font-size: 0.9em; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px;"></span>
+            </div>
             </div>
             
             <div class="section">
@@ -256,7 +257,10 @@
             // 确保apiBaseUrl不包含协议前缀
             const cleanBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '');
             const proxyUrl = `${window.location.protocol}//${window.location.host}/${cleanBaseUrl}`;
-            return `${proxyUrl}/${endpoint}`;
+            // 更新显示的代理URL
+            document.getElementById('proxyUrlDisplay').textContent = proxyUrl;
+            // 如果endpoint为空，则返回基础URL，否则附加endpoint
+            return endpoint ? `${proxyUrl}/${endpoint}` : proxyUrl;
         }
         
         function copyProxyUrl() {
@@ -281,7 +285,11 @@
                 showError('modelError', '错误：请提供API密钥。');
                 return;
             }
-            const url = getApiUrl('v1/models');
+            // 根据API基础地址判断是否为Google服务，调整请求路径
+            const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+            const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
+            const endpoint = isGoogleStyle ? 'v1beta/models' : 'v1/models';
+            const url = getApiUrl(endpoint);
             try {
                 document.getElementById('modelError').textContent = '正在获取模型列表...';
                 const response = await fetch(url, {
@@ -368,7 +376,19 @@
             
             chatHistory.push({ role: 'user', content: message });
             
-            const url = getApiUrl('v1/chat/completions');
+            // 根据API基础地址判断是否为Google服务，调整请求路径
+            const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+            const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
+            let endpoint = 'v1/chat/completions';
+            if (isGoogleStyle) {
+                const model = document.getElementById('modelSelect').value || document.getElementById('modelInput').value;
+                if (model) {
+                    endpoint = `v1beta/models/${model}:streamGenerateContent?alt=sse`;
+                } else {
+                    endpoint = 'v1beta/generateMessage';
+                }
+            }
+            const url = getApiUrl(endpoint);
             const payload = {
                 model: model,
                 messages: chatHistory,
