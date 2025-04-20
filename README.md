@@ -1,8 +1,6 @@
-# ProxyProximity - 新手友好指南 🌟
+# ProxyProximity，一个兼容性强的无服务器API代理
 
-欢迎使用ProxyProximity！这是一个为Deno Deploy设计的工具，可以帮助你轻松代理各种API服务（如OpenAI、Google AI等），无需复杂配置。无论你是新手还是有经验的开发者，这个项目都能帮到你！😊
-
-本指南将手把手教你如何部署和使用这个代理工具，即使你从未接触过Deno Deploy，也能轻松上手。让我们开始吧！
+欢迎使用ProxyProximity！这是一个为Deno Deploy设计的工具，可以帮助你轻松代理各种API服务（如OpenAI、Google AI等），无需复杂配置。无论你是新手还是有经验的开发者，我都希望这个项目都能帮到你！😊
 
 ---
 
@@ -14,7 +12,7 @@
 
 ---
 
-## 如何在Deno Deploy上部署 🚀
+## 在Deno Deploy上轻松部署 🚀
 
 Deno Deploy是一个简单易用的平台，可以免费托管你的代码。以下是详细的部署步骤，即使你是第一次使用，也能轻松完成！我们将通过Fork本项目并在Deno Deploy上配置来完成部署。
 
