@@ -218,6 +218,9 @@
             </div>
         </div>
     </div>
+    <div style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 0.9em; color: #555;">
+        自ProxyProximity部署起，一共有<span id="totalTokens">0</span> Tokens经过转发
+    </div>
 
     <script>
         let chatHistory = [];
@@ -502,6 +505,10 @@
                                         messageElement.innerHTML = marked.parse(buffer);
                                         chatContainer.scrollTop = chatContainer.scrollHeight;
                                     }
+                                    // Check for usage data to update token count
+                                    if (jsonData.usage && jsonData.usage.total_tokens) {
+                                        updateTokenCount(jsonData.usage.total_tokens);
+                                    }
                                 } catch (e) {
                                     showError('chatError', `解析SSE数据失败:<br>错误信息: ${e.message}<br>原始数据行: ${data}`);
                                 }
@@ -515,6 +522,28 @@
                 readStream();
             }).catch(error => {
                 showError('chatError', `请求聊天API失败:<br>错误信息: ${error.message}`);
+            });
+        }
+        
+        function updateTokenCount(tokens) {
+            fetch('/updateTokenCount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tokens: tokens })
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to update token count');
+                }
+            }).then(data => {
+                if (data.totalTokens !== undefined) {
+                    document.getElementById('totalTokens').textContent = data.totalTokens;
+                }
+            }).catch(error => {
+                console.error('Error updating token count:', error);
             });
         }
         

@@ -50,6 +50,35 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // Handle token count update endpoint
+  if (url.pathname === '/updateTokenCount' && req.method === 'POST') {
+    try {
+      const body = await req.json();
+      const tokens = body.tokens || 0;
+      // Use Deno KV to store and update token count
+      const kv = await Deno.openKv();
+      const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
+      const newTotal = currentTotal + tokens;
+      await kv.set(["tokenCount"], newTotal);
+      return new Response(JSON.stringify({ totalTokens: newTotal }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    } catch (error) {
+      console.error("Error updating token count:", error);
+      return new Response(JSON.stringify({ error: "Failed to update token count" }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+  }
+
   // Handle OPTIONS for CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
