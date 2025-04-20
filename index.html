@@ -399,9 +399,9 @@
                 if (model) {
                     // 确保不重复添加 'models/' 前缀
                     const modelPath = model.startsWith('models/') ? model : `models/${model}`;
-                    endpoint = `${modelPath}:streamGenerateContent?alt=sse`;
+                    endpoint = `v1beta/${modelPath}:streamGenerateContent?alt=sse`;
                 } else {
-                    endpoint = 'generateMessage';
+                    endpoint = 'v1beta/generateMessage';
                 }
                 // Google API 特定的载荷格式
                 const systemPrompt = document.getElementById('systemPrompt').value.trim();
