@@ -264,7 +264,11 @@
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
             // 确保apiBaseUrl不包含协议前缀
             const cleanBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '');
-            const proxyUrl = `${window.location.protocol}//${window.location.host}/${cleanBaseUrl}`;
+            // 检查apiBaseUrl是否已经包含版本后缀（如 /v1, /v3）
+            const versionMatch = cleanBaseUrl.match(/\/v\d+$/);
+            // 如果没有版本后缀，自动添加 /v1
+            const finalBaseUrl = versionMatch ? cleanBaseUrl : `${cleanBaseUrl}/v1`;
+            const proxyUrl = `${window.location.protocol}//${window.location.host}/${finalBaseUrl}`;
             // 更新显示的代理URL
             document.getElementById('proxyUrlDisplay').textContent = proxyUrl;
             // 如果endpoint为空，则返回基础URL，否则附加endpoint
