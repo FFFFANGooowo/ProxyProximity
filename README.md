@@ -101,6 +101,14 @@ Deno Deploy是一个简单易用的平台，可以免费托管你的代码。以
   - 代理URL：`https://你的项目名称.deno.dev/generativelanguage.googleapis.com/v1/models`
   - 认证方式：使用 `X-Goog-Api-Key: 你的API密钥`
   - 测试方式：在测试UI中输入API密钥和 `generativelanguage.googleapis.com`，获取模型列表后选择模型。
+  - **注意**：如果您使用的是非Google格式的AI终端（如Cherry Studio），请确保切换到正确的API格式或使用专门支持Google API的客户端，以避免兼容性问题。
+
+- **代理Anthropic API**：
+  - 原始URL：`https://api.anthropic.com/v1/complete`
+  - 代理URL：`https://你的项目名称.deno.dev/api.anthropic.com/v1/complete`
+  - 认证方式：使用 `Authorization: Bearer 你的API密钥`
+  - 测试方式：在测试UI中输入API密钥和 `api.anthropic.com`，选择模型后发送消息。
+  - **注意**：如果您使用的是非Anthropic格式的AI终端（如Cherry Studio），请确保切换到正确的API格式或使用专门支持Anthropic API的客户端，以避免兼容性问题。
 
 **如何传递API密钥**：
 - 你可以在请求头中传递密钥（如 `Authorization` 或 `x-api-key`），或者在URL中添加查询参数 `key=你的API密钥`。
