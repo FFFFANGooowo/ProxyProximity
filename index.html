@@ -211,8 +211,8 @@
                     <!-- 聊天消息将在这里显示 -->
                 </div>
                 <div style="margin-top: 15px; display: flex; gap: 10px; align-items: flex-end;">
-                    <textarea id="userInput" placeholder="输入你的消息..." style="width: 100%; box-sizing: border-box; flex: 1;"></textarea>
-                    <button onclick="sendMessage()" style="height: fit-content;">发送消息</button>
+                    <textarea id="userInput" placeholder="输入你的消息..." style="width: 100%; box-sizing: border-box; flex: 1; height: 40px; min-height: 40px;"></textarea>
+                    <button onclick="sendMessage()" style="height: 40px;">发送消息</button>
                 </div>
                 <div id="chatError" class="error" style="display: none;"></div>
             </div>
@@ -560,6 +560,14 @@
                 container.style.display = 'none';
             }
         }
+        
+        // Add Enter key support for sending message
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>
