@@ -122,10 +122,8 @@ async function handler(req: Request): Promise<Response> {
     // 确保目标域名不包含协议前缀
     targetDomain = targetDomain.replace(/^https?:\/\//, '');
     const remainingPath = pathSegments.slice(1).join('/');
-    // 检查remainingPath是否包含版本后缀（如 /v1, /v3）
-    const versionMatch = remainingPath.match(/^v\d+/);
-    // 如果没有版本后缀，自动添加 /v1
-    const finalPath = versionMatch ? remainingPath : `v1/${remainingPath}`;
+    // 直接使用剩余路径，不做任何版本号添加或修改
+    const finalPath = remainingPath;
     const targetBaseUrl = `https://${targetDomain}`;
     const targetUrl = new URL(`${targetBaseUrl}/${finalPath}${url.search}`);
 
