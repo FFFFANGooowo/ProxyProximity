@@ -564,6 +564,8 @@
                                     // Check for usage data to update token count
                                     if (jsonData.usage && jsonData.usage.total_tokens) {
                                         updateTokenCount(jsonData.usage.total_tokens);
+                                    } else if (jsonData.usageMetadata && jsonData.usageMetadata.totalTokenCount) {
+                                        updateTokenCount(jsonData.usageMetadata.totalTokenCount);
                                     }
                                 } catch (e) {
                                     showError('chatError', `解析SSE数据失败:<br>错误信息: ${e.message}<br>原始数据行: ${data}`);
