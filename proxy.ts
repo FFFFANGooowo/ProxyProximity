@@ -167,8 +167,13 @@ async function handler(req: Request): Promise<Response> {
         // Asynchronously update token count from response
         try {
           const responseJson = JSON.parse(responseBodyText);
+          let tokens = 0;
           if (responseJson.usage && responseJson.usage.total_tokens) {
-            const tokens = responseJson.usage.total_tokens;
+            tokens = responseJson.usage.total_tokens;
+          } else if (responseJson.usageMetadata && responseJson.usageMetadata.totalTokenCount) {
+            tokens = responseJson.usageMetadata.totalTokenCount;
+          }
+          if (tokens > 0) {
             // Use Deno KV to store and update token count asynchronously
             (async () => {
               try {
