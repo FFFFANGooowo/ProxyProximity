@@ -219,8 +219,9 @@
         </div>
     </div>
     <div style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 0.9em; color: #555; transition: opacity 0.5s ease;">
-        自ProxyProximity部署起，一共有<span id="totalTokens" style="position: relative; display: inline-block; min-width: 50px; text-align: center;">0</span> Tokens经过转发
-        <span id="tokenRipple" style="position: absolute; background: radial-gradient(circle, rgba(74, 144, 226, 0.5) 0%, rgba(74, 144, 226, 0) 70%); width: 100px; height: 100px; border-radius: 50%; transform: scale(0); opacity: 0; pointer-events: none;"></span>
+        自ProxyProximity部署起，一共有<span id="totalTokens" style="position: relative; display: inline-block; min-width: 50px; text-align: center; z-index: 1;">0</span> Tokens经过转发
+        <span id="tokenRipple" style="position: absolute; background: radial-gradient(circle, rgba(74, 144, 226, 0.5) 0%, rgba(74, 144, 226, 0) 70%); width: 100px; height: 100px; border-radius: 50%; transform: scale(0); opacity: 0; pointer-events: none; z-index: 0; box-shadow: 0 0 10px rgba(74, 144, 226, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.5);"></span>
+        <span id="tokenArtifact" style="position: absolute; background: rgba(74, 144, 226, 0.2); width: 20px; height: 20px; border-radius: 50%; transform: scale(0); opacity: 0; pointer-events: none; z-index: 0; box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);"></span>
     </div>
 
     <script>
@@ -658,15 +659,25 @@
 
         function triggerRippleEffect(element) {
             const ripple = document.getElementById('tokenRipple');
+            const artifact = document.getElementById('tokenArtifact');
             const rect = element.getBoundingClientRect();
             ripple.style.left = `${rect.left + rect.width / 2 - 50}px`;
             ripple.style.top = `${rect.top + rect.height / 2 - 50}px`;
             ripple.style.transform = 'scale(0)';
             ripple.style.opacity = '1';
             ripple.style.animation = 'ripple 1.5s ease-out forwards';
+            
+            artifact.style.left = `${rect.left + rect.width / 2 - 10}px`;
+            artifact.style.top = `${rect.top + rect.height / 2 - 10}px`;
+            artifact.style.transform = 'scale(0)';
+            artifact.style.opacity = '1';
+            artifact.style.animation = 'ripple 0.8s ease-out forwards';
+            
             setTimeout(() => {
                 ripple.style.animation = '';
                 ripple.style.opacity = '0';
+                artifact.style.animation = '';
+                artifact.style.opacity = '0';
             }, 1500);
         }
     </script>
