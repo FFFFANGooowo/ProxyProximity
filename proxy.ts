@@ -158,11 +158,33 @@ async function handler(req: Request): Promise<Response> {
     console.log(`Response Status from ${targetDomain}: ${status}`);
     console.log(`Response Content-Type from ${targetDomain}: ${contentType}`);
 
-    // Handle JSON responses specially for error debugging
+    // Handle JSON responses specially for error debugging and token counting
     if (contentType?.includes('application/json')) {
       try {
         const responseBodyText = await apiResponse.text();
         console.error(`Received JSON body from ${targetDomain} (Status ${status}):`, responseBodyText);
+
+        // Asynchronously update token count from response
+        try {
+          const responseJson = JSON.parse(responseBodyText);
+          if (responseJson.usage && responseJson.usage.total_tokens) {
+            const tokens = responseJson.usage.total_tokens;
+            // Use Deno KV to store and update token count asynchronously
+            (async () => {
+              try {
+                const kv = await Deno.openKv();
+                const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
+                const newTotal = currentTotal + tokens;
+                await kv.set(["tokenCount"], newTotal);
+                console.log(`Token count updated: ${newTotal} total tokens`);
+              } catch (kvError) {
+                console.error("Error updating token count in KV:", kvError);
+              }
+            })();
+          }
+        } catch (parseError) {
+          console.error("Error parsing JSON for token count:", parseError);
+        }
 
         const responseHeaders = new Headers(apiResponse.headers);
         responseHeaders.delete('Content-Encoding');

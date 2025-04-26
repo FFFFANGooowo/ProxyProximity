@@ -268,6 +268,7 @@
             const versionMatch = cleanBaseUrl.match(/\/v\d+$/);
             // 如果没有版本后缀，且不是Google API，自动添加 /v1
             const isGoogleStyle = cleanBaseUrl.includes('generativelanguage.googleapis.com');
+            const isAnthropicStyle = cleanBaseUrl.includes('api.anthropic.com');
             const finalBaseUrl = versionMatch || isGoogleStyle ? cleanBaseUrl : `${cleanBaseUrl}/v1`;
             const proxyUrl = `${window.location.protocol}//${window.location.host}/${finalBaseUrl}`;
             // 更新显示的代理URL
@@ -298,17 +299,31 @@
                 showError('modelError', '错误：请提供API密钥。');
                 return;
             }
-            // 根据API基础地址判断是否为Google服务，调整请求路径
+            // 根据API基础地址判断是否为Google或Anthropic服务，调整请求路径
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
             const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
-            const endpoint = isGoogleStyle ? 'v1beta/models' : 'models';
+            const isAnthropicStyle = apiBaseUrl.includes('api.anthropic.com');
+            let endpoint;
+            if (isGoogleStyle) {
+                endpoint = 'v1beta/models';
+            } else if (isAnthropicStyle) {
+                endpoint = 'v1/models';
+            } else {
+                endpoint = 'models';
+            }
             const url = getApiUrl(endpoint);
             try {
                 document.getElementById('modelError').textContent = '正在获取模型列表...';
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (isGoogleStyle) {
+                    headers['X-Goog-Api-Key'] = apiKey;
+                } else {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                }
                 const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`
-                    }
+                    headers: headers
                 });
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -391,15 +406,12 @@
             
             chatHistory.push({ role: 'user', content: message });
             
-            // 根据API基础地址判断是否为Google服务，调整请求路径和载荷
+            // 根据API基础地址判断API类型，调整请求路径和载荷
             const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
             const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
-            let endpoint = 'chat/completions';
-            let payload = {
-                model: model,
-                messages: chatHistory,
-                stream: true
-            };
+            const isAnthropicStyle = apiBaseUrl.includes('api.anthropic.com');
+            let endpoint;
+            let payload;
             if (isGoogleStyle) {
                 const modelSelect = document.getElementById('modelSelect').value;
                 const modelInput = document.getElementById('modelInput').value.trim();
@@ -438,13 +450,40 @@
                         parts: [{ text: systemPrompt }]
                     };
                 }
+            } else if (isAnthropicStyle) {
+                endpoint = 'v1/complete';
+                const systemPrompt = document.getElementById('systemPrompt').value.trim();
+                const messages = systemPrompt ? 
+                    [{ role: 'system', content: systemPrompt }, ...chatHistory] : 
+                    chatHistory;
+                payload = {
+                    model: model,
+                    messages: messages,
+                    stream: true
+                };
+            } else {
+                endpoint = 'chat/completions';
+                payload = {
+                    model: model,
+                    messages: chatHistory,
+                    stream: true
+                };
             }
             const url = getApiUrl(endpoint);
             
-            fetchSSE(url, payload, apiKey);
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (isGoogleStyle) {
+                headers['X-Goog-Api-Key'] = apiKey;
+            } else {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
+            
+            fetchSSE(url, payload, apiKey, headers);
         }
         
-        function fetchSSE(url, payload, apiKey) {
+        function fetchSSE(url, payload, apiKey, customHeaders = null) {
             const chatContainer = document.getElementById('chatContainer');
             const messageElement = document.createElement('div');
             messageElement.className = 'message assistant';
@@ -453,12 +492,13 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
             
             let buffer = '';
+            const headers = customHeaders || {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
             fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(payload)
             }).then(response => {
                 if (!response.ok) {
