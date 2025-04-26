@@ -83,14 +83,10 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #357abd;
-            transform: scale(1.05);
-        }
-        button:active {
-            transform: scale(0.95);
         }
         .chat-container {
             border: 1px solid #ddd;
@@ -106,17 +102,6 @@
             padding: 10px;
             border-radius: 6px;
             max-width: 80%;
-            opacity: 0;
-            animation: slideIn 0.5s ease-out forwards;
-        }
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            from {
-                transform: translateY(20px);
-            }
         }
         .message.user {
             background-color: #e3f2fd;
