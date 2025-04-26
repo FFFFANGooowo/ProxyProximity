@@ -510,20 +510,31 @@
                 function readStream() {
                     reader.read().then(({ done, value }) => {
                         if (done) {
-                            try {
-                                const jsonData = JSON.parse(buffer);
-                                if (jsonData.choices && jsonData.choices[0].message) {
-                                    const content = jsonData.choices[0].message.content || '';
-                                    messageElement.innerHTML = marked.parse(content);
-                                    chatHistory.push({ role: 'assistant', content: content });
-                                } else if (jsonData.candidates && jsonData.candidates[0].content) {
-                                    const content = jsonData.candidates[0].content.parts[0].text || '';
-                                    messageElement.innerHTML = marked.parse(content);
-                                    chatHistory.push({ role: 'assistant', content: content });
-                                }
-                            } catch (e) {
-                                if (buffer.trim()) {
-                                    showError('chatError', `解析最终响应失败:<br>错误信息: ${e.message}<br>原始数据: ${buffer}`);
+                            // 对于谷歌服务，buffer 可能不是有效的 JSON，而是累积的文本
+                            if (buffer.trim()) {
+                                // 检查是否为谷歌服务
+                                const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+                                const isGoogleStyle = apiBaseUrl.includes('generativelanguage.googleapis.com');
+                                
+                                if (isGoogleStyle) {
+                                    // 直接使用累积的 buffer 作为内容
+                                    messageElement.innerHTML = marked.parse(buffer);
+                                    chatHistory.push({ role: 'assistant', content: buffer });
+                                } else {
+                                    try {
+                                        const jsonData = JSON.parse(buffer);
+                                        if (jsonData.choices && jsonData.choices[0].message) {
+                                            const content = jsonData.choices[0].message.content || '';
+                                            messageElement.innerHTML = marked.parse(content);
+                                            chatHistory.push({ role: 'assistant', content: content });
+                                        } else if (jsonData.candidates && jsonData.candidates[0].content) {
+                                            const content = jsonData.candidates[0].content.parts[0].text || '';
+                                            messageElement.innerHTML = marked.parse(content);
+                                            chatHistory.push({ role: 'assistant', content: content });
+                                        }
+                                    } catch (e) {
+                                        showError('chatError', `解析最终响应失败:<br>错误信息: ${e.message}<br>原始数据: ${buffer}`);
+                                    }
                                 }
                             }
                             return;
