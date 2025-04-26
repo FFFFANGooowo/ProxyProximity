@@ -50,34 +50,58 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
-  // Handle token count update endpoint
-  if (url.pathname === '/updateTokenCount' && req.method === 'POST') {
-    try {
-      const body = await req.json();
-      const tokens = body.tokens || 0;
-      // Use Deno KV to store and update token count
-      const kv = await Deno.openKv();
-      const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
-      const newTotal = currentTotal + tokens;
-      await kv.set(["tokenCount"], newTotal);
-      return new Response(JSON.stringify({ totalTokens: newTotal }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    } catch (error) {
-      console.error("Error updating token count:", error);
-      return new Response(JSON.stringify({ error: "Failed to update token count" }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
+    // Handle token count update endpoint
+    if (url.pathname === '/updateTokenCount' && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        const tokens = body.tokens || 0;
+        // Use Deno KV to store and update token count
+        const kv = await Deno.openKv();
+        const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
+        const newTotal = currentTotal + tokens;
+        await kv.set(["tokenCount"], newTotal);
+        return new Response(JSON.stringify({ totalTokens: newTotal }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      } catch (error) {
+        console.error("Error updating token count:", error);
+        return new Response(JSON.stringify({ error: "Failed to update token count" }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
     }
-  }
+
+    // Handle token count retrieval endpoint
+    if (url.pathname === '/getTokenCount' && req.method === 'GET') {
+      try {
+        const kv = await Deno.openKv();
+        const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
+        return new Response(JSON.stringify({ totalTokens: currentTotal }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      } catch (error) {
+        console.error("Error retrieving token count:", error);
+        return new Response(JSON.stringify({ error: "Failed to retrieve token count" }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
+    }
 
   // Handle OPTIONS for CORS preflight
   if (req.method === "OPTIONS") {
@@ -164,32 +188,36 @@ async function handler(req: Request): Promise<Response> {
         const responseBodyText = await apiResponse.text();
         console.error(`Received JSON body from ${targetDomain} (Status ${status}):`, responseBodyText);
 
-        // Asynchronously update token count from response
-        try {
-          const responseJson = JSON.parse(responseBodyText);
-          let tokens = 0;
-          if (responseJson.usage && responseJson.usage.total_tokens) {
-            tokens = responseJson.usage.total_tokens;
-          } else if (responseJson.usageMetadata && responseJson.usageMetadata.totalTokenCount) {
-            tokens = responseJson.usageMetadata.totalTokenCount;
+    // Asynchronously update token count from response
+    try {
+      const responseJson = JSON.parse(responseBodyText);
+      let tokens = 0;
+      if (responseJson.usage && responseJson.usage.total_tokens) {
+        tokens = responseJson.usage.total_tokens;
+      } else if (responseJson.usageMetadata && responseJson.usageMetadata.totalTokenCount) {
+        tokens = responseJson.usageMetadata.totalTokenCount;
+      }
+      if (tokens > 0) {
+        // Use Deno KV to store and update token count asynchronously
+        (async () => {
+          try {
+            const kv = await Deno.openKv();
+            const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
+            // Check if this response is a final response to avoid multiple counting
+            const isFinalResponse = responseJson.choices || responseJson.candidates;
+            if (isFinalResponse) {
+              const newTotal = currentTotal + tokens;
+              await kv.set(["tokenCount"], newTotal);
+              console.log(`Token count updated: ${newTotal} total tokens`);
+            }
+          } catch (kvError) {
+            console.error("Error updating token count in KV:", kvError);
           }
-          if (tokens > 0) {
-            // Use Deno KV to store and update token count asynchronously
-            (async () => {
-              try {
-                const kv = await Deno.openKv();
-                const currentTotal = (await kv.get<number>(["tokenCount"])).value || 0;
-                const newTotal = currentTotal + tokens;
-                await kv.set(["tokenCount"], newTotal);
-                console.log(`Token count updated: ${newTotal} total tokens`);
-              } catch (kvError) {
-                console.error("Error updating token count in KV:", kvError);
-              }
-            })();
-          }
-        } catch (parseError) {
-          console.error("Error parsing JSON for token count:", parseError);
-        }
+        })();
+      }
+    } catch (parseError) {
+      console.error("Error parsing JSON for token count:", parseError);
+    }
 
         const responseHeaders = new Headers(apiResponse.headers);
         responseHeaders.delete('Content-Encoding');

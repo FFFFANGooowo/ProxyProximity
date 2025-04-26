@@ -14,6 +14,13 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
         }
         .container {
             background-color: white;
@@ -76,10 +83,14 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
         }
         button:hover {
             background-color: #357abd;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
         }
         .chat-container {
             border: 1px solid #ddd;
@@ -95,6 +106,17 @@
             padding: 10px;
             border-radius: 6px;
             max-width: 80%;
+            opacity: 0;
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                transform: translateY(20px);
+            }
         }
         .message.user {
             background-color: #e3f2fd;
@@ -218,11 +240,9 @@
             </div>
         </div>
     </div>
-    <div style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 0.9em; color: #555; z-index: 1000;">
-        自ProxyProximity部署起，一共有<span id="totalTokens">0</span> Tokens经过转发
-        <div id="tokenAnimation" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); pointer-events: none;">
-            <div style="width: 10px; height: 10px; background-color: #4a90e2; border-radius: 50%; animation: tokenPulse 1s infinite; margin: 0 auto;"></div>
-        </div>
+    <div style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 0.9em; color: #555; transition: opacity 0.5s ease;">
+        自ProxyProximity部署起，一共有<span id="totalTokens" style="position: relative; display: inline-block; min-width: 50px; text-align: center;">0</span> Tokens经过转发
+        <span id="tokenRipple" style="position: absolute; background: radial-gradient(circle, rgba(74, 144, 226, 0.5) 0%, rgba(74, 144, 226, 0) 70%); width: 100px; height: 100px; border-radius: 50%; transform: scale(0); opacity: 0; pointer-events: none;"></span>
     </div>
 
     <script>
@@ -371,12 +391,16 @@
             }, 5000);
         }
         
-        // 定义彩带飘落动画
+        // 定义彩带飘落动画和波纹效果
         const style = document.createElement('style');
         style.textContent = `
             @keyframes fall {
                 0% { transform: translateY(0) rotate(0deg); }
                 100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+            }
+            @keyframes ripple {
+                0% { transform: scale(0); opacity: 1; }
+                100% { transform: scale(2); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
@@ -562,12 +586,12 @@
                                         messageElement.innerHTML = marked.parse(buffer);
                                         chatContainer.scrollTop = chatContainer.scrollHeight;
                                     }
-                                    // Check for usage data to update token count
-                                    if (jsonData.usage && jsonData.usage.total_tokens) {
-                                        updateTokenCount(jsonData.usage.total_tokens);
-                                    } else if (jsonData.usageMetadata && jsonData.usageMetadata.totalTokenCount) {
-                                        updateTokenCount(jsonData.usageMetadata.totalTokenCount);
-                                    }
+                                    // Check for usage data to update token count - disabled to prevent multiple counting
+                                    // if (jsonData.usage && jsonData.usage.total_tokens) {
+                                    //     updateTokenCount(jsonData.usage.total_tokens);
+                                    // } else if (jsonData.usageMetadata && jsonData.usageMetadata.totalTokenCount) {
+                                    //     updateTokenCount(jsonData.usageMetadata.totalTokenCount);
+                                    // }
                                 } catch (e) {
                                     showError('chatError', `解析SSE数据失败:<br>错误信息: ${e.message}<br>原始数据行: ${data}`);
                                 }
@@ -622,6 +646,51 @@
                 sendMessage();
             }
         });
+        
+        // Fetch token count on page load
+        window.addEventListener('load', function() {
+            fetchTokenCount();
+        });
+        
+        function fetchTokenCount() {
+            fetch('/getTokenCount', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to fetch token count');
+                }
+            }).then(data => {
+                if (data.totalTokens !== undefined) {
+                    const tokenElement = document.getElementById('totalTokens');
+                    const oldValue = parseInt(tokenElement.textContent) || 0;
+                    tokenElement.textContent = data.totalTokens;
+                    if (data.totalTokens > oldValue) {
+                        triggerRippleEffect(tokenElement);
+                    }
+                }
+            }).catch(error => {
+                console.error('Error fetching token count:', error);
+            });
+        }
+
+        function triggerRippleEffect(element) {
+            const ripple = document.getElementById('tokenRipple');
+            const rect = element.getBoundingClientRect();
+            ripple.style.left = `${rect.left + rect.width / 2 - 50}px`;
+            ripple.style.top = `${rect.top + rect.height / 2 - 50}px`;
+            ripple.style.transform = 'scale(0)';
+            ripple.style.opacity = '1';
+            ripple.style.animation = 'ripple 1.5s ease-out forwards';
+            setTimeout(() => {
+                ripple.style.animation = '';
+                ripple.style.opacity = '0';
+            }, 1500);
+        }
     </script>
 </body>
 </html>
