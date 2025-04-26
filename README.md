@@ -1,5 +1,7 @@
 # ProxyProximity，一个兼容性强的无服务器API代理
 
+**注意：当前分支 'feature/api-auto-detect' 是一个用于测试新功能的开发分支，可能包含不稳定的更改。建议在生产环境中使用主分支。**
+
 欢迎使用ProxyProximity！这是一个为Deno Deploy设计的工具，可以帮助你轻松代理各种API服务（如OpenAI、Google AI等），无需复杂配置。无论你是新手还是有经验的开发者，我都希望这个项目都能帮到你！😊
 
 ---
